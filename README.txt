@@ -14,6 +14,7 @@ FILES
 - icons/: app icons
 
 FEATURES IN THIS VERSION
+- Automatically follows your device’s light or dark colour preference.
 - Choose a past, current, or future date with the date picker.
 - Log workouts against past dates; future dates use “Save plan” and appear under Upcoming plans in History.
 - History sets appear on separate plain-text lines, without completion ticks or bullet points.

@@ -8,6 +8,15 @@ import {
 } from "./utils.js";
 
 export function createRenderer(getState) {
+  function completedHistoryExercises(entry) {
+    return (entry.exercises || [])
+      .map((exercise) => ({
+        ...exercise,
+        sets: (exercise.sets || []).filter((set) => set.done),
+      }))
+      .filter((exercise) => exercise.sets.length);
+  }
+
   function renderAll() {
     const state = getState();
     renderWorkout();
@@ -66,20 +75,32 @@ export function createRenderer(getState) {
   function renderHistory() {
     const state = getState();
     let sets = state.history.reduce(
-        (n, h) => n + h.exercises.reduce((m, e) => m + e.sets.length, 0),
+        (total, entry) =>
+          total +
+          completedHistoryExercises(entry).reduce(
+            (exerciseTotal, exercise) => exerciseTotal + exercise.sets.length,
+            0,
+          ),
         0,
       ),
-      exes = state.history.reduce((n, h) => n + h.exercises.length, 0);
+      exes = state.history.reduce(
+        (total, entry) => total + completedHistoryExercises(entry).length,
+        0,
+      );
     $("historySessions").textContent = state.history.length;
     $("historySets").textContent = sets;
     $("historyExercises").textContent = exes;
     const historyHtml = [...state.history]
       .map((h, index) => ({ h, index }))
       .reverse()
-      .map(
-        ({ h, index }) =>
-          `<button class="history-card history-card-button" data-history-entry="${index}"><span class="history-summary"><span><b>${escapeHtml(h.date || formatDateKey(dateKeyFromHistory(h)))}</b><span class="tiny">${(h.exercises || []).length} exercises · ${h.completedSets ?? 0} sets completed</span></span><span class="history-card-action">View</span></span></button>`,
-      )
+      .map(({ h, index }) => {
+        const exercises = completedHistoryExercises(h);
+        const completedSets = exercises.reduce(
+          (total, exercise) => total + exercise.sets.length,
+          0,
+        );
+        return `<button class="history-card history-card-button" data-history-entry="${index}"><span class="history-summary"><span><b>${escapeHtml(h.date || formatDateKey(dateKeyFromHistory(h)))}</b><span class="tiny">${exercises.length} exercises · ${completedSets} sets completed</span></span><span class="history-card-action">View</span></span></button>`;
+      })
       .join("");
     const plannedHtml = Object.entries(state.plannedWorkouts || {})
       .filter(([date]) => date >= localDateKey())

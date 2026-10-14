@@ -151,13 +151,12 @@ function closeModal() {
   $("modalBack").classList.remove("open");
 }
 function addExercise(id) {
-  const exercise = findLibraryExercise(id);
+  const exercise = findLibraryExercise(state.library, id);
   if (!exercise) return;
   state.workout.push(createWorkoutExercise(exercise, state.lastValues));
   saveCurrentDraft();
   renderAll();
   toast(`${exercise.name} added`);
-  switchPage("workout");
 }
 function switchPage(page) {
   document
@@ -178,17 +177,7 @@ function saveTemplate() {
     toast("Add an exercise first");
     return;
   }
-  const name = prompt(
-    "Name your favourite workout",
-    state.templateName || "My workout plan",
-  );
-  if (name === null) return;
-  if (!name.trim()) {
-    toast("Enter a name for this workout");
-    return;
-  }
-  state.templateName = name.trim();
-  state.templateDescription = "";
+  state.templateName = state.templateName || "My workout plan";
   state.templateIds = state.workout.map((ex) => ex.id);
   saveCurrentDraft();
   renderAll();
@@ -232,13 +221,23 @@ function finishSession() {
     toast("Workout plan saved");
     return;
   }
+  if (!completedSets) {
+    toast("Complete at least one set before saving");
+    return;
+  }
   if (
     !confirm(
       `Save this session? ${completedSets} of ${totalSets} sets completed.`,
     )
   )
     return;
-  exercises.forEach(
+  const completedExercises = exercises
+    .map((exercise) => ({
+      ...exercise,
+      sets: exercise.sets.filter((set) => set.done),
+    }))
+    .filter((exercise) => exercise.sets.length);
+  completedExercises.forEach(
     (ex) =>
       (state.lastValues[ex.id] = ex.sets.map((set) => ({
         weight: set.weight,
@@ -249,7 +248,7 @@ function finishSession() {
     date: formatDateKey(dateKey),
     dateKey,
     iso: dateFromKey(dateKey).toISOString(),
-    exercises,
+    exercises: completedExercises,
     completedSets,
     notes: $("sessionNotes").value || "",
   });
@@ -268,9 +267,14 @@ function finishSession() {
 }
 function formatHistoryExercises(exercises) {
   return exercises
+    .map((exercise) => ({
+      ...exercise,
+      sets: (exercise.sets || []).filter((set) => set.done),
+    }))
+    .filter((exercise) => exercise.sets.length)
     .map(
       (exercise) =>
-        `<section class="history-exercise"><div class="history-exercise-name">${escapeHtml(exercise.name)}</div>${(exercise.sets || []).map((set, setIndex) => `<div class="history-set-line">Set ${setIndex + 1}: ${escapeHtml(set.weight)} kg × ${escapeHtml(set.reps)}${exercise.unit === "sec" ? " sec" : " reps"}</div>`).join("")}</section>`,
+        `<section class="history-exercise"><div class="history-exercise-name">${escapeHtml(exercise.name)}</div>${exercise.sets.map((set, setIndex) => `<div class="history-set-line">Set ${setIndex + 1}: ${escapeHtml(set.weight)} kg × ${escapeHtml(set.reps)}${exercise.unit === "sec" ? " sec" : " reps"}</div>`).join("")}</section>`,
     )
     .join("");
 }
@@ -278,8 +282,16 @@ function formatHistoryExercises(exercises) {
 function openHistoryDetails(index) {
   const entry = state.history[index];
   if (!entry) return;
-  const exercises = entry.exercises || [];
-  const completedSets = entry.completedSets ?? 0;
+  const exercises = (entry.exercises || [])
+    .map((exercise) => ({
+      ...exercise,
+      sets: (exercise.sets || []).filter((set) => set.done),
+    }))
+    .filter((exercise) => exercise.sets.length);
+  const completedSets = exercises.reduce(
+    (total, exercise) => total + exercise.sets.length,
+    0,
+  );
   openModal(
     entry.date || formatDateKey(dateKeyFromHistory(entry)),
     `<div class="history-modal-summary"><span class="tiny">${exercises.length} exercises · ${completedSets} sets completed</span><div class="menu-wrap"><button class="small" id="historyMenuBtn" aria-label="Workout actions">···</button><div class="menu-pop" id="historyMenu" hidden><button id="editHistoryBtn">Edit workout</button><button id="deleteHistoryBtn" class="danger">Delete workout</button></div></div></div><div class="history-sets">${formatHistoryExercises(exercises)}</div>${entry.notes ? `<p class="tiny">Notes: ${escapeHtml(entry.notes)}</p>` : ""}`,
@@ -341,7 +353,7 @@ function openLibraryExerciseEditor(id) {
   if (!exercise) return;
   openModal(
     exercise.name,
-    `<div class="field"><label>Exercise name</label><input id="libraryEditName" value="${escapeHtml(exercise.name)}"></div><div class="field"><label>Category</label><select id="libraryEditCategory">${EXERCISE_CATEGORIES.map((category) => `<option ${exercise.category === category ? "selected" : ""}>${category}</option>`).join("")}</select></div><div class="field-grid"><div class="field"><label>Default sets</label><input id="libraryEditSets" type="number" min="1" max="15" value="${exercise.sets}"></div><div class="field"><label>Default reps</label><input id="libraryEditReps" type="number" min="1" value="${exercise.reps}"></div></div><div class="btnrow"><button id="saveLibraryExercise" class="primary">Save changes</button><button id="addLibraryExercise">Add to workout</button><button id="deleteLibraryExercise" class="danger">Delete exercise</button></div>`,
+    `<div class="field"><label>Exercise name</label><input id="libraryEditName" value="${escapeHtml(exercise.name)}"></div><div class="field"><label>Category</label><select id="libraryEditCategory">${EXERCISE_CATEGORIES.map((category) => `<option ${exercise.category === category ? "selected" : ""}>${category}</option>`).join("")}</select></div><div class="field-grid"><div class="field"><label>Default sets</label><input id="libraryEditSets" type="number" min="1" max="15" value="${exercise.sets}"></div><div class="field"><label>Default reps</label><input id="libraryEditReps" type="number" min="1" value="${exercise.reps}"></div></div><div class="btnrow"><button id="saveLibraryExercise" class="primary">Save changes</button><button id="deleteLibraryExercise" class="danger">Delete exercise</button></div>`,
   );
   $("saveLibraryExercise").onclick = () => {
     exercise.name = $("libraryEditName").value.trim() || exercise.name;
@@ -355,10 +367,6 @@ function openLibraryExerciseEditor(id) {
     renderAll();
     closeModal();
     toast("Exercise updated");
-  };
-  $("addLibraryExercise").onclick = () => {
-    closeModal();
-    addExercise(exercise.id);
   };
   $("deleteLibraryExercise").onclick = () => {
     if (!confirm(`Delete ${exercise.name} from your exercise catalogue?`)) {
@@ -473,13 +481,15 @@ $("exerciseList").addEventListener("click", (e) => {
   }
 });
 $("libraryList").addEventListener("click", (e) => {
-  const item = e.target.closest("[data-library-exercise]");
-  if (!item) return;
   const addButton = e.target.closest("button[data-lib-action='add']");
   if (addButton) {
+    e.preventDefault();
+    e.stopPropagation();
     addExercise(addButton.dataset.id);
     return;
   }
+  const item = e.target.closest("[data-library-exercise]");
+  if (!item) return;
   openLibraryExerciseEditor(item.dataset.libraryExercise);
 });
 $("exerciseList").addEventListener("change", (e) => {
@@ -488,10 +498,6 @@ $("exerciseList").addEventListener("change", (e) => {
 document
   .querySelectorAll(".tab")
   .forEach((b) => (b.onclick = () => switchPage(b.dataset.page)));
-$("addExerciseBtn").onclick = () => {
-  switchPage("library");
-  $("searchExercise").focus();
-};
 $("newExerciseBtn").onclick = newCustom;
 $("searchExercise").oninput = renderLibrary;
 $("libraryFilter").onchange = renderLibrary;
@@ -516,6 +522,28 @@ function loadBaseTemplate() {
   switchPage("workout");
   toast("Favourite workout loaded");
 }
+
+function syncCurrentWorkoutToTemplate() {
+  const currentExercisesById = new Map();
+  state.workout.forEach((exercise) => {
+    const exercises = currentExercisesById.get(exercise.id) || [];
+    exercises.push(exercise);
+    currentExercisesById.set(exercise.id, exercises);
+  });
+
+  state.workout = state.templateIds
+    .map((id) => {
+      const currentExercises = currentExercisesById.get(id);
+      if (currentExercises?.length) return currentExercises.shift();
+
+      const libraryExercise = findLibraryExercise(state.library, id);
+      return libraryExercise
+        ? createWorkoutExercise(libraryExercise, state.lastValues)
+        : null;
+    })
+    .filter(Boolean);
+}
+
 $("sessionNotes").oninput = saveCurrentDraft;
 $("workoutDatePicker").onchange = () => {
   const next = $("workoutDatePicker").value;
@@ -727,10 +755,11 @@ $("saveTemplateEdits").onclick = () => {
   state.templateName = name;
   state.templateDescription = $("editorTemplateDescription").value.trim();
   state.templateIds = [...editorSelectedIds];
-  save();
+  syncCurrentWorkoutToTemplate();
+  saveCurrentDraft();
   renderAll();
   switchPage("workout");
-  toast("Workout plan updated");
+  toast("Workout plan and current session updated");
 };
 $("cancelTemplateEdit").onclick = () => switchPage("workout");
 $("deleteTemplateBtn").onclick = () => {

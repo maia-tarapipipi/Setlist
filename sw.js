@@ -1,24 +1,7 @@
-const CACHE_NAME = "setlist-pwa-v19";
-const APP_SHELL = [
-  "./",
-  "./index.html",
-  "./styles.css",
-  "./app.js",
-  "./js/config.js",
-  "./js/utils.js",
-  "./js/workout.js",
-  "./js/timer.js",
-  "./js/render.js",
-  "./manifest.json?v=2",
-  "./icons/setlist-moon-192.png",
-  "./icons/setlist-moon-512.png",
-  "./icons/setlist-moon-maskable-512.png",
-];
+const CACHE_NAME = "setlist-pwa-v20";
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)),
-  );
+  event.waitUntil(caches.open(CACHE_NAME));
   self.skipWaiting();
 });
 

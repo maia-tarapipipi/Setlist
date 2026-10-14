@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111318">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Setlist">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
+<title>Setlist — Workout Tracker</title>
+<link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+<div class="app">
+<header class="top"><div class="brand"><div class="logo">S</div><div><div class="eyebrow">Your training log</div><h1>Setlist</h1></div></div><button class="ghost small" id="exportBtn" title="Export backup">↥ Export</button></header>
+<nav class="tabs"><button class="tab active" data-page="workout">Workout</button><button class="tab" data-page="library">Exercises</button><button class="tab" data-page="history">History</button></nav>
+<main id="workoutPage" class="page active">
+<section class="hero"><div class="hero-line"><div><div class="eyebrow">Favourite workout</div><h2 id="templateTitle">Full body · A</h2><div class="muted" id="templateDescription">A balanced session built around squat, hinge, push, pull and core.</div></div><div class="menu-wrap"><button class="small" id="templateMenuBtn" aria-label="Favourite workout settings">···</button><div class="menu-pop" id="templateMenu" hidden><button id="editTemplateBtn">Edit workout plan</button><button id="deleteTemplateBtn" class="danger">Delete favourite</button><button id="resetTemplateBtn">Reload favourite workout</button></div></div></div><div class="stats"><div class="stat"><b id="exerciseCount">9</b><span>Exercises</span></div><div class="stat"><b id="setCount">23</b><span>Working sets</span></div></div></section>
+<div class="section-head"><div><div class="eyebrow">Current session</div><h2 id="sessionDate">Today’s workout</h2></div><button class="small primary" id="finishBtn">Finish session</button></div>
+<div class="date-picker-row"><div class="field"><label for="workoutDatePicker">Workout date · past, today, or future</label><input id="workoutDatePicker" type="date"></div><button id="todayBtn" class="small">Today</button></div>
+<section class="timer-panel"><div class="timer-top"><div><div class="timer-read" id="timerRead">01:30</div></div><div class="timer-controls"><button id="timerMinus" aria-label="Reduce timer">−</button><button id="timerToggle" class="primary">Start</button><button id="timerReset">↺</button><button id="timerPlus" aria-label="Increase timer">+</button></div></div><div class="progress"><div id="timerProgress"></div></div></section>
+<div id="exerciseList"></div>
+<div class="bottom-actions"><button id="addExerciseBtn" class="primary">＋ Add exercise</button><button id="saveTemplateBtn">♡ Save as favourite workout</button></div>
+
+<div class="panel"><h3>Session notes</h3><div class="tiny" style="margin:4px 0 9px">How did the workout feel? Anything to remember next week?</div><textarea id="sessionNotes" rows="3" placeholder="Energy, form notes, equipment alternatives…" style="width:100%;background:#12151b;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px;resize:vertical"></textarea></div>
+</main>
+<main id="libraryPage" class="page">
+<div class="section-head"><div><div class="eyebrow">Exercise catalogue</div><h2>Choose your movements</h2></div><button id="newExerciseBtn" class="primary small">＋ Custom</button></div>
+<div class="searchrow"><input id="searchExercise" placeholder="Search exercises…"><select id="libraryFilter" style="max-width:125px"><option value="all">All</option><option value="Lower body">Lower body</option><option value="Upper body">Upper body</option><option value="Core">Core</option><option value="Full body">Full body</option></select></div>
+<div class="panel"><div class="tiny">Tap “Add” to include an exercise in your current workout.</div><div id="libraryList"></div></div>
+
+</main>
+<main id="templateEditorPage" class="page">
+<div class="section-head"><div><div class="eyebrow">Favourite workout</div><h2>Edit workout plan</h2></div><button id="cancelTemplateEdit" class="small">Back</button></div>
+<div class="panel"><div class="field"><label for="editorTemplateName">Workout name</label><input id="editorTemplateName" placeholder="e.g. Full body · A"></div><div class="field"><label for="editorTemplateDescription">Description</label><textarea id="editorTemplateDescription" rows="3" placeholder="What is this workout for?"></textarea></div><p class="tiny">Use + to include an exercise and − to remove it from this favourite workout.</p></div>
+<div class="section-head"><h2>Exercises</h2><span id="editorExerciseCount" class="tiny"></span></div>
+<div class="editor-search"><input id="editorSearch" placeholder="Search exercises…"><select id="editorFilter" aria-label="Filter exercises"><option value="all">All</option><option>Lower body</option><option>Upper body</option><option>Core</option><option>Full body</option></select></div>
+<div id="templateEditorList" class="editor-list"></div>
+<button id="saveTemplateEdits" class="primary wide">Save workout plan</button>
+</main>
+<main id="historyPage" class="page">
+<div class="section-head"><div><div class="eyebrow">Your progress</div><h2>Workout history</h2></div><button id="clearHistory" class="small danger">Clear history</button></div>
+<div class="panel"><div class="stats" style="margin-top:0"><div class="stat"><b id="historySessions">0</b><span>Sessions</span></div><div class="stat"><b id="historySets">0</b><span>Sets logged</span></div><div class="stat"><b id="historyExercises">0</b><span>Exercises</span></div></div></div>
+<div class="panel" id="historyList"><div class="empty">Finish your first session to start building your history.</div></div>
+<div class="footer-note">Your data stays on this device unless you export a backup.</div>
+</main>
+</div>
+<div class="modal-back" id="modalBack"><section class="modal"><div class="modal-head"><h2 id="modalTitle">Add exercise</h2><button class="ghost" id="modalClose">✕</button></div><div id="modalBody"></div></section></div>
+<div class="toast" id="toast"></div>
+<script src="./app.js" defer></script>
+</body>
+</html>

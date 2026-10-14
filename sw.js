@@ -1,4 +1,4 @@
-const CACHE_NAME = "setlist-pwa-v17";
+const CACHE_NAME = "setlist-pwa-v18";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -9,10 +9,10 @@ const APP_SHELL = [
   "./js/workout.js",
   "./js/timer.js",
   "./js/render.js",
-  "./manifest.json",
-  "./icons/setlist-moon-192.png",
-  "./icons/setlist-moon-512.png",
-  "./icons/setlist-moon-maskable-512.png",
+  "./manifest.json?v=2",
+  "./icons/setlist-moon-192.png?v=2",
+  "./icons/setlist-moon-512.png?v=2",
+  "./icons/setlist-moon-maskable-512.png?v=2",
 ];
 
 self.addEventListener("install", (event) => {

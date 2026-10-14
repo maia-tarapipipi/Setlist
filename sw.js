@@ -1,4 +1,4 @@
-const CACHE_NAME = "setlist-pwa-v14";
+const CACHE_NAME = "setlist-pwa-v17";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -10,9 +10,9 @@ const APP_SHELL = [
   "./js/timer.js",
   "./js/render.js",
   "./manifest.json",
-  "./icons/icon-192.png",
-  "./icons/icon-512.png",
-  "./icons/icon-maskable-512.png",
+  "./icons/setlist-moon-192.png",
+  "./icons/setlist-moon-512.png",
+  "./icons/setlist-moon-maskable-512.png",
 ];
 
 self.addEventListener("install", (event) => {

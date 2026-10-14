@@ -1,4 +1,4 @@
-const CACHE_NAME = "setlist-pwa-v20";
+const CACHE_NAME = "setlist-pwa-v21";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE_NAME));
